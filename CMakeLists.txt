@@ -23,7 +23,7 @@ if (EXISTS ${picoVscode})
     include(${picoVscode})
 endif()
 # ====================================================================================
-set(PICO_BOARD pico2_w CACHE STRING "Board type")
+set(PICO_BOARD pimoroni_pico_plus2_w_rp2350 CACHE STRING "Board type")
 
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
@@ -36,7 +36,8 @@ pico_sdk_init()
 # Add executable. Default name is the project name, version 0.1
 
 add_executable(Pico2PlusWren 
-            src/Pico2PlusWren.c 
+            src/main.c 
+            src/psram.c
 )
 
 pico_set_program_name(Pico2PlusWren "Pico2PlusWren")
@@ -45,6 +46,11 @@ pico_set_program_version(Pico2PlusWren "0.1")
 # Modify the below lines to enable/disable output over UART/USB
 pico_enable_stdio_uart(Pico2PlusWren 1)
 pico_enable_stdio_usb(Pico2PlusWren 1)
+
+include_directories(
+    ./wren/src/include
+)
+add_subdirectory(./wren)
 
 # Add the standard library to the build
 target_link_libraries(Pico2PlusWren
@@ -58,6 +64,7 @@ target_include_directories(Pico2PlusWren PRIVATE
 # Add any user requested libraries
 target_link_libraries(Pico2PlusWren 
         hardware_dma
+        hardware_spi
         pico_cyw43_arch_none
         )
 
