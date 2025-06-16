@@ -40,7 +40,10 @@ pico_sdk_init()
 # Add executable. Default name is the project name, version 0.1
 
 add_executable(Pico2PlusWren 
-            src/main.c 
+            src/main.c
+            src/psram.c
+            src/wren_interface.c
+            src/gfx.c
 )
 
 pico_set_program_name(Pico2PlusWren "Pico2PlusWren")
@@ -72,10 +75,12 @@ target_include_directories(Pico2PlusWren PRIVATE
 target_link_libraries(Pico2PlusWren 
         hardware_dma
         hardware_spi
+        hardware_flash
         )
 
 pico_add_extra_outputs(Pico2PlusWren)
 
 target_compile_definitions(Pico2PlusWren PRIVATE
                 PICO_USE_SW_SPIN_LOCKS=0
+                PICO_SCANVIDEO_PLANE1_VARIABLE_FRAGMENT_DMA=0
         )

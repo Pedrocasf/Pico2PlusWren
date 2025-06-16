@@ -46,6 +46,12 @@
         "array": "c",
         "string": "c",
         "string_view": "c",
-        "span": "c"
+        "span": "c",
+        "wren_interface.h": "c",
+        "composable_scanline.h": "c",
+        "stdio.h": "c",
+        "variant": "c",
+        "binary_info.h": "c",
+        "cstdlib": "c"
     }
 }
