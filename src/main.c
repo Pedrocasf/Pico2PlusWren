@@ -1,14 +1,14 @@
 #define SFE_RP2350_XIP_CSI_PIN 47
 #include <stdio.h>
+#include "pico/scanvideo.h"
+#include "pico/scanvideo/composable_scanline.h"
 #include "sparkfun_pico/sfe_pico.h"
 #include "pico/stdlib.h"
 #include "hardware/dma.h"
 #include "hardware/uart.h"
 #include "wren/src/include/wren.h"
-// Data will be copied from src to dst
-const char src[] = "Hello, world! (from DMA)";
-char dst[count_of(src)];
-
+#define VGA_MODE vga_mode_640x480_60
+extern const struct scanvideo_pio_program video_24mhz_composable;
 
 // UART defines
 // By default the stdout UART is `uart0`, so we will use the second one
@@ -49,6 +49,29 @@ void error_fn(WrenVM* vm, WrenErrorType errorType,
     } break;
   }
 }
+#define MIN_COLOR_RUN 3
+int32_t single_color_scanline(uint32_t *buf, size_t buf_length, int width, uint32_t color16) {
+    assert(buf_length >= 2);
+
+    assert(width >= MIN_COLOR_RUN);
+    // | jmp color_run | color | count-3 |  buf[0] =
+    buf[0] = COMPOSABLE_COLOR_RUN | (color16 << 16);
+    buf[1] = (width - MIN_COLOR_RUN) | (COMPOSABLE_RAW_1P << 16);
+    // note we must end with a black pixel
+    buf[2] = 0 | (COMPOSABLE_EOL_ALIGN << 16);
+
+    return 3;
+}
+
+void render_scanline(struct scanvideo_scanline_buffer *dest) {
+    uint32_t *buf = dest->data;
+    size_t buf_length = dest->data_max;
+
+    int l = scanvideo_scanline_number(dest->scanline_id);
+    uint16_t bgcolour = (uint16_t) l << 2;
+    dest->data_used = single_color_scanline(buf, buf_length, VGA_MODE.width, bgcolour);
+    dest->status = SCANLINE_OK;
+}
 int main(){
     stdio_init_all();
     sleep_ms(10000);
@@ -81,7 +104,13 @@ int main(){
     }
 
     wrenFreeVM(vm);
-    for(;;){}
+    scanvideo_setup(&VGA_MODE);
+    scanvideo_timing_enable(true);
+    for(;;){
+      struct scanvideo_scanline_buffer *scanline_buffer = scanvideo_begin_scanline_generation(true);
+      render_scanline(scanline_buffer);
+      scanvideo_end_scanline_generation(scanline_buffer);
+    }
     /*while (true) {
         printf("Hello, world!\n");
         sleep_ms(1000);

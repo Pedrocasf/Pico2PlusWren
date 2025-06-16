@@ -42,6 +42,10 @@
         "sfe_pico.h": "c",
         "stdlib.h": "c",
         "stdbool.h": "c",
-        "cyw43_arch.h": "c"
+        "cyw43_arch.h": "c",
+        "array": "c",
+        "string": "c",
+        "string_view": "c",
+        "span": "c"
     }
 }
