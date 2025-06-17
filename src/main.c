@@ -24,7 +24,7 @@ extern const struct scanvideo_pio_program video_24mhz_composable;
 #define UART_RX_PIN 5
 
 static uint16_t frame_buffer0[SCREEN_H*SCREEN_W] = {0xFFFF};
-static uint16_t frame_buffer1[SCREEN_H*SCREEN_W] = {0x7FFF};
+//static uint16_t frame_buffer1[SCREEN_H*SCREEN_W] = {0x7FFF};
 static bool which_bufer = false;
 void fill_scanline_buffer(struct scanvideo_scanline_buffer *buffer){
         static uint32_t postamble[] = {
@@ -51,25 +51,30 @@ void fill_scanline_buffer(struct scanvideo_scanline_buffer *buffer){
 int main(){
     stdio_init_all();
     sleep_ms(10000);
+    /*
     WrenConfiguration config;
     WrenVM* vm = start_wren(config);
     run_wren(vm);
     wrenFreeVM(vm);
+    */
     scanvideo_setup(&VGA_MODE);
     scanvideo_timing_enable(true);
     Point p0 = {
-      1, 1
+      1, 1, 1.0f
     };
     Point p1 = {
-      50,50
+      50,50, 1.0f
     };
     Point p2 = {
-      20, 90
+      20, 90, 1.0f
+    };
+    Color c = {
+      255,255,255
     };
     //draw_line(p0,p1,0x000F, frame_buffer0);
     //draw_line(p1, p2, 0x03E0, frame_buffer0);
-    //draw_wireframe_tri(p0,p1,p2, 0xFFFF, frame_buffer0);
-    draw_full_tri(p0,p1,p2, 0xFFFF, frame_buffer0);
+    draw_shaded_tri(p0,p1,p2, c, frame_buffer0);
+    //draw_wireframe_tri(p0,p1,p2, c, frame_buffer0);
     for(;;){
       scanvideo_wait_for_vblank();
       struct scanvideo_scanline_buffer *buffer = scanvideo_begin_scanline_generation(false);

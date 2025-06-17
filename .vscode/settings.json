@@ -65,6 +65,8 @@
         "streambuf": "c",
         "tuple": "c",
         "cstdint": "c",
-        "cstring": "c"
+        "cstring": "c",
+        "scanvideo.h": "c",
+        "scanvideo_base.h": "c"
     }
 }
