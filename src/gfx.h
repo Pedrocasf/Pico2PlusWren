@@ -11,6 +11,7 @@ typedef struct Point
 typedef struct Color{
     uint8_t r,g,b;
 }Color;
+
 float* interpolate(int i0, float d0, int i1, float d1);
 void draw_line(Point p0, Point p1, Color color, uint16_t* fb);
 void draw_wireframe_tri(Point p0, Point p1, Point p2, Color color, uint16_t* fb);

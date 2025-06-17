@@ -66,18 +66,20 @@ int main(){
       50,50, 1.0f
     };
     Point p2 = {
-      20, 90, 1.0f
+      20, 90, 0.5f
     };
     Color c = {
       255,255,255
     };
     //draw_line(p0,p1,0x000F, frame_buffer0);
     //draw_line(p1, p2, 0x03E0, frame_buffer0);
+    draw_wireframe_tri(p0,p1,p2, c, frame_buffer0);
+    printf("before shaded tri\n");
     draw_shaded_tri(p0,p1,p2, c, frame_buffer0);
-    //draw_wireframe_tri(p0,p1,p2, c, frame_buffer0);
+    printf("after shaded tri\n");
     for(;;){
       scanvideo_wait_for_vblank();
-      struct scanvideo_scanline_buffer *buffer = scanvideo_begin_scanline_generation(false);
+      struct scanvideo_scanline_buffer *buffer = scanvideo_begin_scanline_generation(true);
       while(buffer){
         fill_scanline_buffer(buffer);
         scanvideo_end_scanline_generation(buffer);

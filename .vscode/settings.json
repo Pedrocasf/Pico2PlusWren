@@ -67,6 +67,7 @@
         "cstdint": "c",
         "cstring": "c",
         "scanvideo.h": "c",
-        "scanvideo_base.h": "c"
+        "scanvideo_base.h": "c",
+        "random": "c"
     }
 }

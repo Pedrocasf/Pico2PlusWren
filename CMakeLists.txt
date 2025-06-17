@@ -41,9 +41,10 @@ pico_sdk_init()
 
 add_executable(Pico2PlusWren 
             src/main.c
-            src/psram.c
-            src/wren_interface.c
             src/gfx.c
+            #src/psram.c
+            #src/wren_interface.c
+            
 )
 
 pico_set_program_name(Pico2PlusWren "Pico2PlusWren")
@@ -63,8 +64,9 @@ target_link_libraries(Pico2PlusWren
         pico_multicore
         pico_stdlib
         pico_scanvideo_dpi
-        sparkfun_pico
-        WrenVM)
+        #sparkfun_pico
+        #WrenVM
+        )
 
 # Add the standard include files to the build
 target_include_directories(Pico2PlusWren PRIVATE
