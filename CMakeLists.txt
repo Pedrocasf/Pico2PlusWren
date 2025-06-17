@@ -82,5 +82,5 @@ pico_add_extra_outputs(Pico2PlusWren)
 
 target_compile_definitions(Pico2PlusWren PRIVATE
                 PICO_USE_SW_SPIN_LOCKS=0
-                PICO_SCANVIDEO_PLANE1_VARIABLE_FRAGMENT_DMA=0
+                PICO_SCANVIDEO_PLANE1_VARIABLE_FRAGMENT_DMA=1
         )

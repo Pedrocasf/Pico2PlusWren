@@ -52,6 +52,19 @@
         "stdio.h": "c",
         "variant": "c",
         "binary_info.h": "c",
-        "cstdlib": "c"
+        "cstdlib": "c",
+        "*.inc": "c",
+        "vector": "c",
+        "functional": "c",
+        "format": "c",
+        "iomanip": "c",
+        "istream": "c",
+        "limits": "c",
+        "ostream": "c",
+        "sstream": "c",
+        "streambuf": "c",
+        "tuple": "c",
+        "cstdint": "c",
+        "cstring": "c"
     }
 }
