@@ -26,7 +26,6 @@ WrenVM* start_wren(WrenConfiguration config){
     wrenInitConfiguration(&config);
     config.writeFn = &write_fn;
     config.errorFn = &error_fn;
-    config.reallocateFn = &reallocate_psram;
     WrenVM* vm = wrenNewVM(&config);
     return vm;
 }
@@ -43,11 +42,4 @@ void run_wren(WrenVM* vm){
         case WREN_RESULT_SUCCESS:
         { printf("Success!\n"); } break;
     }
-}
-void* reallocate_psram(void* ptr, size_t new_size, void* _){
-    if(new_size == 0){
-        sfe_mem_free(ptr);
-        return NULL;
-    }
-    return sfe_mem_realloc(ptr, new_size);
 }

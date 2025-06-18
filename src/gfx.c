@@ -131,7 +131,7 @@ void draw_shaded_tri(Point p0,Point p1,Point p2, Color c, uint16_t* fb){
         p1 = p2;
         p2 = tmp; 
     };
-    printf("Before first Interpolations\n");
+    //printf("Before first Interpolations\n");
     float* x01 = interpolate(p0.y,p0.x,p1.y,p1.x);
     float* h01 = interpolate(p0.y,p0.h,p1.y,p1.h);
     size_t e01_size = p1.y-p0.y;
@@ -144,7 +144,7 @@ void draw_shaded_tri(Point p0,Point p1,Point p2, Color c, uint16_t* fb){
     float* h02 = interpolate(p0.y,p0.h,p2.y,p2.h);
     size_t e02_size = p2.y-p0.y;
     
-    printf("After first Interpolations\n");
+    //printf("After first Interpolations\n");
 
     float* x012 = calloc(e01_size+e12_size-1, sizeof(float));
     memcpy(x012, x01, sizeof(float)*(e01_size-1));
@@ -157,7 +157,7 @@ void draw_shaded_tri(Point p0,Point p1,Point p2, Color c, uint16_t* fb){
     int32_t x012_size = e01_size + e12_size-1;    
     free(h01);
     free(h12);
-    printf("After concat\n");
+    //printf("After concat\n");
     int32_t m = x012_size>>1;
     float *x_left; 
     float *x_right;
@@ -185,7 +185,7 @@ void draw_shaded_tri(Point p0,Point p1,Point p2, Color c, uint16_t* fb){
         for(int x = x_l; x<x_r ;x++){
             //printf("x: %i\n", x);
             float h = h_segment[x - x_l];
-            printf("h: %f\n", h);
+            //printf("h: %f\n", h);
             Color s_c = {
                 c.r * h,
                 c.g * h,

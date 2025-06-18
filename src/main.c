@@ -25,6 +25,16 @@ extern const struct scanvideo_pio_program video_24mhz_composable;
 
 static uint16_t frame_buffer0[SCREEN_H*SCREEN_W] = {0xFFFF};
 //static uint16_t frame_buffer1[SCREEN_H*SCREEN_W] = {0x7FFF};
+static void memory_stats()
+{
+    size_t mem_size = sfe_mem_size();
+    size_t mem_used = sfe_mem_used();
+    printf("\tMemory pool - Total: 0x%X (%u)  Used: 0x%X (%u) - %3.2f%%\n", mem_size, mem_size, mem_used, mem_used,
+           (float)mem_used / (float)mem_size * 100.0);
+
+    size_t max_block = sfe_mem_max_free_size();
+    printf("\tMax free block size: 0x%X (%u) \n", max_block, max_block);
+}
 static bool which_bufer = false;
 void fill_scanline_buffer(struct scanvideo_scanline_buffer *buffer){
         static uint32_t postamble[] = {
@@ -50,13 +60,11 @@ void fill_scanline_buffer(struct scanvideo_scanline_buffer *buffer){
 };
 int main(){
     stdio_init_all();
+    sfe_pico_alloc_init();
     sleep_ms(10000);
-    /*
     WrenConfiguration config;
     WrenVM* vm = start_wren(config);
     run_wren(vm);
-    wrenFreeVM(vm);
-    */
     scanvideo_setup(&VGA_MODE);
     scanvideo_timing_enable(true);
     Point p0 = {
@@ -73,10 +81,12 @@ int main(){
     };
     //draw_line(p0,p1,0x000F, frame_buffer0);
     //draw_line(p1, p2, 0x03E0, frame_buffer0);
-    draw_wireframe_tri(p0,p1,p2, c, frame_buffer0);
-    printf("before shaded tri\n");
+    //printf("before shaded tri\n");
     draw_shaded_tri(p0,p1,p2, c, frame_buffer0);
-    printf("after shaded tri\n");
+    draw_wireframe_tri(p0,p1,p2, c, frame_buffer0);
+    //printf("after shaded tri\n");
+    memory_stats();
+    wrenFreeVM(vm);
     for(;;){
       scanvideo_wait_for_vblank();
       struct scanvideo_scanline_buffer *buffer = scanvideo_begin_scanline_generation(true);

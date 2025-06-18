@@ -29,6 +29,13 @@ set(PICO_CYW43_SUPPORTED 1)
 set(PICO_EXTRAS_FETCH_FROM_GIT 1)
 add_compile_definitions(SFE_RP2350_XIP_CSI_PIN=47)
 # Pull in Raspberry Pi Pico SDK (must be before project)
+set(SKIP_PICO_MALLOC 1)
+
+# the following enables wrapping in sparkfun_pico builds
+set(SFE_PICO_ALLOC_WRAP 1)
+
+# the following enables the system malloc/free to be wrapped during compilation
+add_definitions(-DSFE_PICO_ALLOC_WRAP)
 include(pico_sdk_import.cmake)
 include(pico_extras_import.cmake)
 
@@ -42,8 +49,8 @@ pico_sdk_init()
 add_executable(Pico2PlusWren 
             src/main.c
             src/gfx.c
-            #src/psram.c
-            #src/wren_interface.c
+            src/psram.c
+            src/wren_interface.c
             
 )
 
@@ -53,7 +60,9 @@ pico_set_program_version(Pico2PlusWren "0.1")
 # Modify the below lines to enable/disable output over UART/USB
 pico_enable_stdio_uart(Pico2PlusWren 1)
 pico_enable_stdio_usb(Pico2PlusWren 1)
+
 add_subdirectory(sparkfun_pico)
+
 include_directories(
     ./wren/src/include
 )
@@ -64,8 +73,8 @@ target_link_libraries(Pico2PlusWren
         pico_multicore
         pico_stdlib
         pico_scanvideo_dpi
-        #sparkfun_pico
-        #WrenVM
+        sparkfun_pico
+        WrenVM
         )
 
 # Add the standard include files to the build
