@@ -68,6 +68,8 @@
         "cstring": "c",
         "scanvideo.h": "c",
         "scanvideo_base.h": "c",
-        "random": "c"
+        "random": "c",
+        "compare": "c",
+        "stdint.h": "c"
     }
 }

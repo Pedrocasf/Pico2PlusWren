@@ -5,15 +5,20 @@
 #include "pico/scanvideo/composable_scanline.h"
 #include "pico/scanvideo.h"
 #include "gfx.h"
-const Color RED = {
-    0xFF, 0, 0
-};
-const Color GREEN = {
-    0, 0xFF, 0
-};
-const Color BLUE = {
-    0, 0, 0xFF
-};
+#define VIEWPORT_SIZE 1.0f
+#define PROJECTION_PLANE_Z 1.0f
+const Color RED = PICO_SCANVIDEO_PIXEL_FROM_RGB8(0xFF,0x00,0x00);
+const Color GREEN = PICO_SCANVIDEO_PIXEL_FROM_RGB8(0x00,0xFF,0x00);
+const Color BLUE = PICO_SCANVIDEO_PIXEL_FROM_RGB8(0x00,0x00,0xFF);
+Vertex viewport_to_canvas(float x, float y){
+    Vertex p = {(x * SCREEN_W)/VIEWPORT_SIZE, (y*SCREEN_H)/VIEWPORT_SIZE, 1.0f};
+    return p;
+}
+Vertex project_vertex(Vertex v){
+    Vertex p = viewport_to_canvas(v.x * (PROJECTION_PLANE_Z/ v.z), v.y* (PROJECTION_PLANE_Z/v.z)); 
+    p.z = v.z;
+    return p;
+}
 float* interpolate(int i0, float d0, int i1, float d1){
     float* values;
     if(i1 == i0){
@@ -33,10 +38,19 @@ float* interpolate(int i0, float d0, int i1, float d1){
     
     return values;
 }
-void draw_line(const Point point0,const Point point1, Color c, uint16_t* fb){
-    Point p0 = point0;
-    Point p1 = point1;
-    if(abs(p1.x - p0.x)>abs(p1.y - p0.y)){
+void plot_px(int x, int y , uint16_t c, uint16_t* fb){
+    x = (SCREEN_W/2) + (x | 0);
+    y = (SCREEN_H/2) - (y | 0) -1;
+    if (x < 0 || x >= SCREEN_W || y < 0 || y >= SCREEN_H)
+        return;
+    fb[x + (y*SCREEN_W)] = c;
+}
+void draw_line(const Vertex point0,const Vertex point1, Color c, uint16_t* fb){
+    Point p0 = {point0.x, point0.y};
+    Point p1 = {point1.x, point1.y} ;
+    float dx = p1.x - p0.x;
+    float dy = p1.y - p0.y;
+    if(fabsf(dx)>fabsf(dy)){
         if( p0.x > p1.x){
             Point tmp = p1;
             p1 = p0;
@@ -45,8 +59,10 @@ void draw_line(const Point point0,const Point point1, Color c, uint16_t* fb){
         float* ys = interpolate(p0.x,(float)p0.y,p1.x,(float)p1.y);
         for(int32_t x = p0.x; x<p1.x ; x++){
             //printf("ys %f\n", ys[x - p0.x]);
-            int y = ys[x - p0.x];
-            fb[x + (y*SCREEN_W)] = PICO_SCANVIDEO_PIXEL_FROM_RGB8(c.r,c.g,c.b);
+            int32_t px = x - p0.x;
+            int y = ys[px];
+            plot_px(x, y, c, fb);
+            
         }
         free(ys);
     }else{
@@ -58,30 +74,31 @@ void draw_line(const Point point0,const Point point1, Color c, uint16_t* fb){
         float* xs = interpolate(p0.y,(float)p0.x,p1.y,(float)p1.x);
         for(int y = p0.y; y < p1.y ; y++){
             //printf("xs %f\n", xs[y - p0.y]);
-            int x = xs[y - p0.y];
-            fb[x + (y*SCREEN_W)] = PICO_SCANVIDEO_PIXEL_FROM_RGB8(c.r,c.g,c.b);
+            int32_t py = y - p0.y;
+            int x = xs[py];
+            plot_px(x, y, c, fb);
         }
         free(xs);
     }
 }
-void draw_wireframe_tri(const Point p0,const Point p1,const Point p2, Color c, uint16_t* fb){
+void draw_wireframe_tri(const Vertex p0,const Vertex p1,const Vertex p2, Color c, uint16_t* fb){
     draw_line(p0, p1, RED, fb);
     draw_line(p1, p2, GREEN, fb);
     draw_line(p2, p0, BLUE, fb);
 }
-void draw_full_tri(Point p0,Point p1,Point p2, Color c, uint16_t* fb){
+void draw_full_tri(Vertex p0,Vertex p1,Vertex  p2, Color c, uint16_t* fb){
     if(p1.y < p0.y){
-        Point tmp = p1;
+        Vertex tmp = p1;
         p1 = p0;
         p0 = tmp; 
     };
     if(p2.y < p0.y){
-        Point tmp = p2;
+        Vertex tmp = p2;
         p2 = p0;
         p0 = tmp; 
     };
     if(p2.y < p1.y){
-        Point tmp = p1;
+        Vertex tmp = p1;
         p1 = p2;
         p2 = tmp; 
     };
@@ -109,39 +126,40 @@ void draw_full_tri(Point p0,Point p1,Point p2, Color c, uint16_t* fb){
         x_right = x02;
     }
     for(int y = p0.y; y < p2.y; y++){
-        for(int x = x_left[y-p0.y]; x<x_right[y-p0.y];x++){
-            fb[x + (y*SCREEN_W)] = PICO_SCANVIDEO_PIXEL_FROM_RGB8(c.r,c.g,c.b);
+        int32_t py = y-p0.y;
+        for(int x = x_left[py]; x<x_right[py];x++){
+            plot_px(x, y, c, fb);
         }
     }
 }
 
-void draw_shaded_tri(Point p0,Point p1,Point p2, Color c, uint16_t* fb){
+void draw_shaded_tri(Vertex p0,Vertex p1,Vertex p2, Color c, uint16_t* fb){
     if(p1.y < p0.y){
-        Point tmp = p1;
+        Vertex tmp = p1;
         p1 = p0;
         p0 = tmp; 
     };
     if(p2.y < p0.y){
-        Point tmp = p2;
+        Vertex tmp = p2;
         p2 = p0;
         p0 = tmp; 
     };
     if(p2.y < p1.y){
-        Point tmp = p1;
+        Vertex tmp = p1;
         p1 = p2;
         p2 = tmp; 
     };
     //printf("Before first Interpolations\n");
     float* x01 = interpolate(p0.y,p0.x,p1.y,p1.x);
-    float* h01 = interpolate(p0.y,p0.h,p1.y,p1.h);
+    float* h01 = interpolate(p0.y,p0.z,p1.y,p1.z);
     size_t e01_size = p1.y-p0.y;
     
     float* x12 = interpolate(p1.y,p1.x,p2.y,p2.x);
-    float* h12 = interpolate(p1.y,p1.h,p2.y,p2.h);
+    float* h12 = interpolate(p1.y,p1.z,p2.y,p2.z);
     size_t e12_size = p2.y-p1.y;
     
     float* x02 = interpolate(p0.y,p0.x,p2.y,p2.x);
-    float* h02 = interpolate(p0.y,p0.h,p2.y,p2.h);
+    float* h02 = interpolate(p0.y,p0.z,p2.y,p2.z);
     size_t e02_size = p2.y-p0.y;
     
     //printf("After first Interpolations\n");
@@ -176,22 +194,19 @@ void draw_shaded_tri(Point p0,Point p1,Point p2, Color c, uint16_t* fb){
     }
     //float h_segment[SCREEN_W] = {0.0f};
     for(int y = p0.y; y < p2.y; y++){
-        int32_t x_l = (int32_t)x_left[y - p0.y];
-        int32_t x_r = (int32_t)x_right[y - p0.y];
-        float h_l =  h_left[y - p0.y];
-        float h_r = h_right[y-p0.y];
+        int32_t py = y - p0.y;
+        int32_t x_l = (int32_t)x_left[py];
+        int32_t x_r = (int32_t)x_right[py];
+        float h_l =  h_left[py];
+        float h_r = h_right[py];
         float* h_segment = interpolate(x_l,h_l, x_r, h_r);
         //printf("h segment number %i sz:%i\n", y-p0.y, x_r - x_l);
         for(int x = x_l; x<x_r ;x++){
             //printf("x: %i\n", x);
             float h = h_segment[x - x_l];
             //printf("h: %f\n", h);
-            Color s_c = {
-                c.r * h,
-                c.g * h,
-                c.b * h
-            };
-            fb[x + (y*SCREEN_W)] = PICO_SCANVIDEO_PIXEL_FROM_RGB8(s_c.r,s_c.g,s_c.b);
+            Color s_c = c * h;
+            plot_px(x, y, s_c, fb);
         }
         free(h_segment);
     }
@@ -207,3 +222,34 @@ void draw_shaded_tri(Point p0,Point p1,Point p2, Color c, uint16_t* fb){
     */
 }
 
+void draw_wireframe_cube(Vertex vs[8],uint16_t * fb ){
+    draw_line(project_vertex(vs[0]), project_vertex(vs[1]), BLUE, fb);
+    draw_line(project_vertex(vs[1]), project_vertex(vs[2]), BLUE, fb);
+    draw_line(project_vertex(vs[2]), project_vertex(vs[3]), BLUE, fb);
+    draw_line(project_vertex(vs[3]), project_vertex(vs[0]), BLUE, fb);
+
+    draw_line(project_vertex(vs[4]), project_vertex(vs[5]), RED, fb);
+    draw_line(project_vertex(vs[5]), project_vertex(vs[6]), RED, fb);
+    draw_line(project_vertex(vs[6]), project_vertex(vs[7]), RED, fb);
+    draw_line(project_vertex(vs[7]), project_vertex(vs[4]), RED, fb);
+        
+    draw_line(project_vertex(vs[0]), project_vertex(vs[4]), GREEN, fb);
+    draw_line(project_vertex(vs[1]), project_vertex(vs[5]), GREEN, fb);
+    draw_line(project_vertex(vs[2]), project_vertex(vs[6]), GREEN, fb);
+    draw_line(project_vertex(vs[3]), project_vertex(vs[7]), GREEN, fb);
+}
+void render_triangle(TriIdxs t, Vertex* pt,uint16_t * fb  ){
+    draw_wireframe_tri(pt[t.id0], pt[t.id1], pt[t.id2],t.c, fb);   
+}
+const Vertex T = {-1.5f, 0.0f, 7.0f};
+void render_object(Vertex *v, int32_t vtxs_len, TriIdxs* t, int32_t idxs_len,uint16_t * fb ){
+    Vertex* projected = calloc(vtxs_len, sizeof(Vertex));
+    for (size_t i = 0; i < vtxs_len; i++)
+    {
+        Vertex vl = {v[i].x + T.x, v[i].y + T.y, v[i].z + T.z};
+        projected[i] = project_vertex(vl);
+    }
+    for(size_t j = 0;j< idxs_len;j++){
+        render_triangle(t[j], projected, fb);
+    }
+}

@@ -67,24 +67,59 @@ int main(){
     run_wren(vm);
     scanvideo_setup(&VGA_MODE);
     scanvideo_timing_enable(true);
-    Point p0 = {
-      1, 1, 1.0f
+    Vertex vs[8] = {
+      {-2.0f, -0.5f, 5.0f}, //vAf
+      {-2.0f,  0.5f, 5.0f}, //vBf
+      {-1.0f,  0.5f, 5.0f}, //vCf
+      {-1.0f, -0.5f, 5.0f}, //vDf
+      {-2.0f, -0.5f, 6.0f}, //vAb
+      {-2.0f,  0.5f, 6.0f}, //vBb
+      {-1.0f,  0.5f, 6.0f}, //vCb
+      {-1.0f, -0.5f, 6.0f}  //vDb
     };
-    Point p1 = {
-      50,50, 1.0f
+    Vertex p0 = {
+      -20.f,-25.f,1.0f
     };
-    Point p2 = {
-      20, 90, 0.5f
+    Vertex p1 = {
+      20.f,5, 1.0f
     };
-    Color c = {
-      255,255,255
+    Vertex p2 = {
+      2.f, 25.f, 0.5f
     };
-    //draw_line(p0,p1,0x000F, frame_buffer0);
+    Color c = 0xFFFF;
+    Vertex vs2[8] = {
+      {1,1,1},
+      {-1,1,1},
+      {-1,-1,1},
+      {1,-1,1},
+      {1,1,-1},
+      {-1,1,-1},
+      {-1,-1,-1},
+      {1,-1,-1}
+    };
+    TriIdxs tris[12] = {
+      {0,1,2,PICO_SCANVIDEO_PIXEL_FROM_RGB8(0xFF,0x00,0x00)},
+      {0,2,3,PICO_SCANVIDEO_PIXEL_FROM_RGB8(0xFF,0x00,0x00)},
+      {4,0,3,PICO_SCANVIDEO_PIXEL_FROM_RGB8(0x00,0xFF,0x00)},
+      {4,3,7,PICO_SCANVIDEO_PIXEL_FROM_RGB8(0x00,0xFF,0x00)},
+      {5,4,7,PICO_SCANVIDEO_PIXEL_FROM_RGB8(0x00,0x00,0xFF)},
+      {5,7,6,PICO_SCANVIDEO_PIXEL_FROM_RGB8(0x00,0x00,0xFF)},
+      {5,4,7,PICO_SCANVIDEO_PIXEL_FROM_RGB8(0xFF,0xFF,0x00)},
+      {5,7,6,PICO_SCANVIDEO_PIXEL_FROM_RGB8(0xFF,0xFF,0x00)},
+      {4,5,1,PICO_SCANVIDEO_PIXEL_FROM_RGB8(0xFF,0x00,0xFF)},
+      {4,1,0,PICO_SCANVIDEO_PIXEL_FROM_RGB8(0xFF,0x00,0xFF)},
+      {2,6,7,PICO_SCANVIDEO_PIXEL_FROM_RGB8(0x00,0xFF,0xFF)},
+      {2,7,3,PICO_SCANVIDEO_PIXEL_FROM_RGB8(0x00,0xFF,0xFF)},
+      
+    };
+    //draw_line(p0,p1,c, frame_buffer0);
     //draw_line(p1, p2, 0x03E0, frame_buffer0);
     //printf("before shaded tri\n");
-    draw_shaded_tri(p0,p1,p2, c, frame_buffer0);
-    draw_wireframe_tri(p0,p1,p2, c, frame_buffer0);
+    //draw_shaded_tri(p0,p1,p2, c, frame_buffer0);
+    //draw_wireframe_tri(p0,p1,p2, c, frame_buffer0);
     //printf("after shaded tri\n");
+    //draw_wireframe_cube(vs, frame_buffer0);
+    render_object(vs2, 8, tris, 12, frame_buffer0);
     memory_stats();
     wrenFreeVM(vm);
     for(;;){
